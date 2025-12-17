@@ -1,31 +1,48 @@
-import faiss
-import pickle
-import numpy as np
+import os
+import chromadb
 from sentence_transformers import SentenceTransformer
 
-INDEX_PATH = "data/shl_faiss.index"
-META_PATH = "data/shl_metadata.pkl"
 
 class SHLRetriever:
     def __init__(self):
+        # ---- Embedding model (same as before) ----
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
-        self.index = faiss.read_index(INDEX_PATH)
 
-        with open(META_PATH, "rb") as f:
-            self.metadata = pickle.load(f)
+        # ---- Chroma Cloud client ----
+        self.client = chromadb.CloudClient(
+            api_key=os.getenv("CHROMA_API_KEY"),
+            tenant=os.getenv("CHROMA_TENANT"),
+            database=os.getenv("CHROMA_DATABASE")
+        )
 
-    def retrieve(self, query, top_k=20):
-        q_emb = self.model.encode(
-            [query],
+        # ---- Collection ----
+        self.collection = self.client.get_collection(
+            os.getenv("CHROMA_COLLECTION", "shl")
+        )
+
+    def retrieve(self, query: str, top_k: int = 20):
+        # ---- Encode query ----
+        query_embedding = self.model.encode(
+            query,
             normalize_embeddings=True
-        ).astype("float32")
+        ).tolist()
 
-        scores, indices = self.index.search(q_emb, top_k)
+        # ---- Query Chroma ----
+        results = self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k
+        )
 
-        results = []
-        for idx, score in zip(indices[0], scores[0]):
-            item = self.metadata[idx]
-            item["score"] = float(score)
-            results.append(item)
+        # ---- Format results (match your old output) ----
+        retrieved = []
+        metadatas = results.get("metadatas", [[]])[0]
 
-        return results
+        for meta in metadatas:
+            retrieved.append({
+                "assessment_name": meta.get("assessment_name"),
+                "description": meta.get("description"),
+                "test_type": meta.get("test_type"),
+                "url": meta.get("url"),
+            })
+
+        return retrieved
