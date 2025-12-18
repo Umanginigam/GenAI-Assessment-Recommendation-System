@@ -2,6 +2,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
+import os
+
+# Debug: Print startup info
+print("=" * 50)
+print("🚀 Starting SHL API...")
+print(f"✓ CHROMA_API_KEY: {'set' if os.getenv('CHROMA_API_KEY') else 'MISSING'}")
+print(f"✓ CHROMA_TENANT: {'set' if os.getenv('CHROMA_TENANT') else 'MISSING'}")
+print(f"✓ GITHUB_TOKEN: {'set' if os.getenv('GITHUB_TOKEN') else 'MISSING'}")
+print("=" * 50)
 
 from backend.pipeline import recommend
 
