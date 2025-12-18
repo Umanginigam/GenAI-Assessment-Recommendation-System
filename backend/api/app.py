@@ -44,9 +44,10 @@ class RecommendResponse(BaseModel):
 
 
 # --------- Health ----------
+@app.get("/")
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "SHL Assessment Recommendation API"}
 
 # --------- Recommend ----------
 @app.post("/recommend", response_model=RecommendResponse)
