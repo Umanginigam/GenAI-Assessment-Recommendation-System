@@ -12,7 +12,8 @@ print(f"✓ CHROMA_TENANT: {'set' if os.getenv('CHROMA_TENANT') else 'MISSING'}"
 print(f"✓ GITHUB_TOKEN: {'set' if os.getenv('GITHUB_TOKEN') else 'MISSING'}")
 print("=" * 50)
 
-from backend.pipeline import recommend
+# DON'T import recommend here - it loads heavy models!
+# Import it inside the endpoint function instead
 
 app = FastAPI(
     title="SHL Assessment Recommendation API",
@@ -62,6 +63,9 @@ def health():
 # --------- Recommend ----------
 @app.post("/recommend", response_model=RecommendResponse)
 def recommend_assessments(req: RecommendRequest):
+    # Lazy import: only load heavy models when this endpoint is actually called
+    from backend.pipeline import recommend
+    
     results = recommend(req.query, max_results=10)
 
     if not results:
