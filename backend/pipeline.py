@@ -1,4 +1,4 @@
-from llm.query_understanding import extract_intent
+from backend.llm.query_understanding import extract_intent
 from backend.query_builder import build_expanded_query
 from backend.retriever import SHLRetriever
 from backend.balancer import balance_results
