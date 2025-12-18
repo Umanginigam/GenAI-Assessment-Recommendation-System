@@ -16,10 +16,36 @@ function App() {
     }
     try {
       setLoading(true);
+      console.log("Sending query:", query);
       const data = await fetchRecommendations(query);
-      setResults(data.recommendations || []);
+      console.log("Received data:", data);
+      console.log("Data type:", typeof data);
+      console.log("Data keys:", Object.keys(data));
+      
+      // Handle different response formats
+      let recommendations = [];
+      if (Array.isArray(data)) {
+        recommendations = data;
+      } else if (data.recommended_assessments) {
+        recommendations = data.recommended_assessments;
+      } else if (data.recommendations) {
+        recommendations = data.recommendations;
+      } else if (data.data) {
+        recommendations = data.data;
+      } else if (data.results) {
+        recommendations = data.results;
+      }
+      
+      console.log("Extracted recommendations:", recommendations);
+      
+      if (recommendations.length === 0) {
+        setError("No recommendations found. Try a different query.");
+      } else {
+        setResults(recommendations);
+      }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      console.error("Error:", err);
+      setError(`Error: ${err.message || "Something went wrong. Please try again."}`);
     } finally {
       setLoading(false);
     }
@@ -249,7 +275,7 @@ function App() {
                             {idx + 1}
                           </span>
                           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
-                            {item.assessment_name}
+                            {item.assessment_name || item.name}
                           </h3>
                         </div>
                       </div>
