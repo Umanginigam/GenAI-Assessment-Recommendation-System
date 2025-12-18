@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://genai-33tl.onrender.com";
 
 export async function fetchRecommendations(query) {
   const response = await fetch(`${API_BASE}/recommend`, {
